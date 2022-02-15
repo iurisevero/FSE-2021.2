@@ -27,6 +27,12 @@ void float2Bytes(unsigned char bytes_temp[4],float float_variable){
   memcpy(bytes_temp, (unsigned char*) (&float_variable), 4);
 }
 
+void int2Bytes(unsigned char bytes_temp[4], int int_variable){
+    for(int i=0; i < 4; ++i)
+        bytes_temp[i] = (int_variable >> (8*i)) & 0xFF;
+}
+
+
 int main(int argc, const char * argv[]) {
     char uart_path[] = "/dev/serial0";
     int uart_filestream = abrir_uart(uart_path);
@@ -117,34 +123,37 @@ int solicita_dado(int uart_filestream, int cmd){
 int envia_pacote_de_dados(int uart_filestream, int cmd){
     unsigned char pacote_envio_de_dados[260];
     unsigned char * p_pacote_envio_de_dados = &pacote_envio_de_dados[0];
+    int int_dado = 7;
+    float float_dado = 7.7777;
+    char str_dado[11] = "Uma frase!";
+
+
     switch (cmd)
     {
     case CMD_ENVIA_INT:
-        int int_dado;
-        printf("Insira um inteiro: ");
-        scanf("%d", &int_dado);
+        unsigned char int_bytes[4];
+        int2Bytes(int_bytes, int_dado);
         *p_pacote_envio_de_dados++ = cmd;
         for(int i=0; i < 4; ++i)
-            *p_pacote_envio_de_dados++ = (int_dado >> (8*i)) & 0xFF;
+            *p_pacote_envio_de_dados++ = int_bytes[i];
         for(int i=0; i < 4; ++i)
             *p_pacote_envio_de_dados++ = MATRICULA[i];
         break;
-     case CMD_ENVIA_FLOAT:
-        float float_dado;
-        printf("Insira um ponto flutuante: ");
-        scanf("%f", &float_dado);
+    case CMD_ENVIA_FLOAT:
         *p_pacote_envio_de_dados++ = cmd;
-        unsigned char bytes[4];
-        float2Bytes(bytes, float_dado);
+        unsigned char float_bytes[4];
+        float2Bytes(float_bytes, float_dado);
         for(int i=0; i < 4; ++i)
-            *p_pacote_envio_de_dados++ = bytes[i];
+            *p_pacote_envio_de_dados++ = float_bytes[i];
         for(int i=0; i < 4; ++i)
             *p_pacote_envio_de_dados++ = MATRICULA[i];
         break;
-     case CMD_ENVIA_STRING:        
+    case CMD_ENVIA_STRING:        
         *p_pacote_envio_de_dados++ = cmd;
-        printf("Insira uma string de até 255 caracteres:\n");
-        while(scanf("%c", p_pacote_envio_de_dados), *p_pacote_envio_de_dados != '\n') p_pacote_envio_de_dados++;
+        *p_pacote_envio_de_dados++ = 11;
+        for(int i=0; i < 10; ++i)
+            *p_pacote_envio_de_dados++ = str_dado[i];
+
         *p_pacote_envio_de_dados++ = '\0';
 
         for(int i=0; i < 4; ++i)
@@ -156,43 +165,6 @@ int envia_pacote_de_dados(int uart_filestream, int cmd){
     }
     size_t _size = (p_pacote_envio_de_dados - &pacote_envio_de_dados[0]);
     return envia_dados(uart_filestream, &pacote_envio_de_dados[0], _size);
-}
-
-#pragma region Envio de dados
-int envia_dados(int uart_filestream, int * int_buffer, size_t size_buffer){
-    if (uart_filestream != -1){
-        printf("Escrevendo inteiro na UART ...");
-        int count = write(uart_filestream, int_buffer, size_buffer);
-        if (count < 0){
-            printf("UART TX error\n");
-            return count;
-        }
-        else{
-            printf("Escrito.\n");
-            return 0;
-        }
-    }
-    
-    printf("Filestream da UART inválido\n");
-    return -1;
-}
-
-int envia_dados(int uart_filestream, float * fl_buffer, size_t size_buffer){
-    if (uart_filestream != -1){
-        printf("Escrevendo ponto flutuante na UART ...");
-        int count = write(uart_filestream, fl_buffer, size_buffer);
-        if (count < 0){
-            printf("UART TX error\n");
-            return count;
-        }
-        else{
-            printf("Escrito.\n");
-            return 0;
-        }
-    }
-    
-    printf("Filestream da UART inválido\n");
-    return -1;
 }
 
 int envia_dados(int uart_filestream, unsigned char * tx_buffer, size_t size_buffer){
@@ -212,9 +184,7 @@ int envia_dados(int uart_filestream, unsigned char * tx_buffer, size_t size_buff
     printf("Filestream da UART inválido\n");
     return -1;
 }
-#pragma endregion
 
-#pragma region Recebimento de dados
 int recebe_dado(int uart_filestream, int cmd){
     switch (cmd)
     {
@@ -307,4 +277,3 @@ int recebe_dado(int uart_filestream, char * rx_buffer){
     printf("Filestream da UART inválido\n");
     return -1;
 }
-#pragma endregion
