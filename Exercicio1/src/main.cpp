@@ -4,21 +4,21 @@
 #include <fcntl.h>          //Used for UART
 #include <termios.h>        //Used for UART
 
-const int CMD_SOLICITA_INT = 0xA1;
-const int CMD_SOLICITA_FLOAT = 0xA2;
-const int CMD_SOLICITA_STRING = 0xA3;
-const int CMD_ENVIA_INT = 0xB1;
-const int CMD_ENVIA_FLOAT = 0xB2;
-const int CMD_ENVIA_STRING = 0xB3;
-const int MATRICULA[] = {5, 5, 1, 4};
+const char CMD_SOLICITA_INT = 0xA1;
+const char CMD_SOLICITA_FLOAT = 0xA2;
+const char CMD_SOLICITA_STRING = 0xA3;
+const char CMD_ENVIA_INT = 0xB1;
+const char CMD_ENVIA_FLOAT = 0xB2;
+const char CMD_ENVIA_STRING = 0xB3;
+const char MATRICULA[] = {5, 5, 1, 4};
 
 int abrir_uart(char * file_path);
-int solicita_dado(int uart_filestream, int cmd);
-int envia_pacote_de_dados(int uart_filestream, int cmd);
+int solicita_dado(int uart_filestream, char cmd);
+int envia_pacote_de_dados(int uart_filestream, char cmd);
 int envia_dados(int uart_filestream, int * tx_buffer, size_t size_buffer);
 int envia_dados(int uart_filestream, float * tx_buffer, size_t size_buffer);
 int envia_dados(int uart_filestream, unsigned char * tx_buffer, size_t size_buffer);
-int recebe_dado(int uart_filestream, int cmd);
+int recebe_dado(int uart_filestream, char cmd);
 int recebe_dado(int uart_filestream, int * int_buffer);
 int recebe_dado(int uart_filestream, float * float_buffer);
 int recebe_dado(int uart_filestream, char * rx_buffer);
@@ -92,7 +92,7 @@ int abrir_uart(char * file_path){
     return uart_filestream;
 }
 
-int solicita_dado(int uart_filestream, int cmd){
+int solicita_dado(int uart_filestream, char cmd){
     unsigned char pacote_solicitacao_de_dados[5];
     unsigned char *p_pacote_solicitacao_de_dados;
     p_pacote_solicitacao_de_dados = &pacote_solicitacao_de_dados[0];
@@ -120,7 +120,7 @@ int solicita_dado(int uart_filestream, int cmd){
     return envia_dados(uart_filestream, &pacote_solicitacao_de_dados[0], _size);
 }
 
-int envia_pacote_de_dados(int uart_filestream, int cmd){
+int envia_pacote_de_dados(int uart_filestream, char cmd){
     unsigned char pacote_envio_de_dados[260];
     unsigned char * p_pacote_envio_de_dados = &pacote_envio_de_dados[0];
     int int_dado = 7;
@@ -185,7 +185,7 @@ int envia_dados(int uart_filestream, unsigned char * tx_buffer, size_t size_buff
     return -1;
 }
 
-int recebe_dado(int uart_filestream, int cmd){
+int recebe_dado(int uart_filestream, char cmd){
     switch (cmd)
     {
     case CMD_SOLICITA_INT:
