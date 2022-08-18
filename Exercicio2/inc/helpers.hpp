@@ -3,10 +3,13 @@
 
 #include <string.h>
 
-void float2Bytes(unsigned char bytes_temp[4],float * float_variable);
-void int2Bytes(unsigned char bytes_temp[4], int * int_variable);
-size_t get_size(unsigned char * begin, unsigned char * end);
-void add_crc(unsigned short crc, void * dest);
-void print_arr_hex(unsigned char * arr, size_t size);
+void float2Bytes(unsigned char tempBytes[4],float * floatVariable);
+void int2Bytes(unsigned char tempBytes[4], int * intVariable);
+size_t getSize(unsigned char * begin, unsigned char * end);
+void addCRC(unsigned short crc, void * dest);
+bool checkCRC(unsigned char * message, size_t size);
+bool checkErrorBit(unsigned char * message);
+void printArrHex(char * arr, size_t size);
+void printArrHex(unsigned char * arr, size_t size);
 
 #endif

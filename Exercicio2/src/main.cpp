@@ -5,149 +5,55 @@
 #include "helpers.hpp"
 #include "consts.hpp"
 #include "crc16.hpp"
-
-const unsigned char ENDERECO = 0x01;
-const unsigned char CMD_SOLICITACAO = 0x23;
-const unsigned char CMD_SOLICITA_INT = 0xA1;
-const unsigned char CMD_SOLICITA_FLOAT = 0xA2;
-const unsigned char CMD_SOLICITA_STRING = 0xA3;
-const unsigned char CMD_ENVIO = 0x16;
-const unsigned char CMD_ENVIA_INT = 0xB1;
-const unsigned char CMD_ENVIA_FLOAT = 0xB2;
-const unsigned char CMD_ENVIA_STRING = 0xB3;
-
-size_t monta_solicitacao(unsigned char * mensagem, unsigned char cmd);
-size_t monta_envio(unsigned char * mensagem, int valor);
-size_t monta_envio(unsigned char * mensagem, float valor);
-size_t monta_envio(unsigned char * mensagem, char * valor);
-bool verifica_crc(unsigned char * mensagem, size_t size);
-bool verifica_bit_de_erro(unsigned char * mensagem);
+#include "modbus.hpp"
+#include "consts.hpp"
 
 int main(int argc, const char * argv[]) {
-    // char uart_path[] = "/dev/serial0";
-    // int uart_filestream = abrir_uart(uart_path);
-    // close(uart_filestream);
-    unsigned char * mensagem;
+    // char uartPath[] = "/dev/serial0";
+    // int uartFilestream = openUart(uartPath);
+    // close(uartFilestream);
+    unsigned char * message;
 
-    mensagem = (unsigned char *) malloc(5);
-    size_t size = monta_solicitacao(mensagem, CMD_SOLICITA_INT);
+    message = (unsigned char *) malloc(5);
+    size_t size = monta_solicitacao(message, CMD_SOLICITA_INT);
     printf("size: %ld\n", size);
-    print_arr_hex(mensagem, size);
-    bool a = verifica_crc(mensagem, size);
+    printArrHex(message, size);
+    bool a = checkCRC(message, size);
     printf("Bool: %d\n", a);
-    a = verifica_bit_de_erro(mensagem);
+    a = checkErrorBit(message);
     printf("Bool: %d\n", a);
-    free(mensagem);
+    free(message);
 
-    mensagem = (unsigned char *) malloc(9);
-    size = monta_envio(mensagem, 7);
+    message = (unsigned char *) malloc(9);
+    size = monta_envio(message, 7);
     printf("size: %ld\n", size);
-    print_arr_hex(mensagem, size);
-    a = verifica_crc(mensagem, size);
+    printArrHex(message, size);
+    a = checkCRC(message, size);
     printf("Bool: %d\n", a);
-    a = verifica_bit_de_erro(mensagem);
+    a = checkErrorBit(message);
     printf("Bool: %d\n", a);
-    free(mensagem);
+    free(message);
 
-    mensagem = (unsigned char *) malloc(9);
-    size = monta_envio(mensagem, 7.0f);
+    message = (unsigned char *) malloc(9);
+    size = monta_envio(message, 7.0f);
     printf("size: %ld\n", size);
-    print_arr_hex(mensagem, size);
-    a = verifica_crc(mensagem, size);
+    printArrHex(message, size);
+    a = checkCRC(message, size);
     printf("Bool: %d\n", a);
-    a = verifica_bit_de_erro(mensagem);
+    a = checkErrorBit(message);
     printf("Bool: %d\n", a);
-    free(mensagem);
+    free(message);
 
-    mensagem = (unsigned char *) malloc(12);
-    size = monta_envio(mensagem, "Hello");
+    message = (unsigned char *) malloc(12);
+    size = monta_envio(message, "Hello");
     printf("size: %ld\n", size);
-    print_arr_hex(mensagem, size);
-    a = verifica_crc(mensagem, size);
+    printArrHex(message, size);
+    a = checkCRC(message, size);
     printf("Bool: %d\n", a);
-    a = verifica_bit_de_erro(mensagem);
+    a = checkErrorBit(message);
     printf("Bool: %d\n", a);
-    free(mensagem);
+    free(message);
     return 0;
 }
 
 
-size_t monta_solicitacao(unsigned char * mensagem, unsigned char cmd){
-    // mensagem = (unsigned char *) malloc(5);
-    unsigned char * p_mensagem = mensagem;
-    *p_mensagem++ = ENDERECO;
-    *p_mensagem++ = CMD_SOLICITACAO;
-    *p_mensagem++ = cmd;
-    size_t _size = get_size(mensagem, p_mensagem);
-    unsigned short crc = calcula_CRC(mensagem, _size);
-    add_crc(crc, p_mensagem);
-    return (_size + 2);
-}
-
-size_t monta_envio(unsigned char * mensagem, int valor){
-    // mensagem = (unsigned char *) malloc(9);
-    unsigned char * p_mensagem = mensagem;
-    *p_mensagem++ = ENDERECO;
-    *p_mensagem++ = CMD_ENVIO;
-    *p_mensagem++ = CMD_ENVIA_INT;
-
-    unsigned char int_bytes[4];
-    int2Bytes(int_bytes, &valor);
-    for(int i=0; i < 4; ++i)
-        *p_mensagem++ = int_bytes[i];
-
-    size_t _size = get_size(mensagem, p_mensagem);
-    unsigned short crc = calcula_CRC(mensagem, _size);
-    add_crc(crc, p_mensagem);
-    return (_size + 2);
-}
-
-size_t monta_envio(unsigned char * mensagem, float valor){
-    // mensagem = (unsigned char *) malloc(9);
-    unsigned char * p_mensagem = mensagem;
-    *p_mensagem++ = ENDERECO;
-    *p_mensagem++ = CMD_ENVIO;
-    *p_mensagem++ = CMD_ENVIA_FLOAT;
-
-    unsigned char float_bytes[4];
-    float2Bytes(float_bytes, &valor);
-    for(int i=0; i < 4; ++i)
-        *p_mensagem++ = float_bytes[i];
-
-    size_t _size = get_size(mensagem, p_mensagem);
-    unsigned short crc = calcula_CRC(mensagem, _size);
-    add_crc(crc, p_mensagem);
-    return (_size + 2);
-}
-
-size_t monta_envio(unsigned char * mensagem, char * valor){
-    size_t str_size = strlen(valor);
-    // mensagem = (unsigned char *) malloc(str_size + 7);
-    unsigned char * p_mensagem = mensagem;
-    *p_mensagem++ = ENDERECO;
-    *p_mensagem++ = CMD_ENVIO;
-    *p_mensagem++ = CMD_ENVIA_STRING;
-    *p_mensagem++ = str_size;
-
-    for(size_t i=0; i < str_size; ++i)
-        *p_mensagem++ = (unsigned char) valor[i];
-    *p_mensagem++ = '\0';
-
-    size_t _size = get_size(mensagem, p_mensagem);
-    unsigned short crc = calcula_CRC(mensagem, _size);
-    add_crc(crc, p_mensagem);
-    return (_size + 2);
-}
-
-bool verifica_crc(unsigned char * mensagem, size_t size){
-    unsigned short crc_atual;
-    size_t _size = sizeof(unsigned short);
-    memcpy(&crc_atual, &mensagem[size - _size], _size);
-    return crc_atual == calcula_CRC(mensagem, size - _size);
-}
-
-bool verifica_bit_de_erro(unsigned char * mensagem){
-    unsigned char cmd = mensagem[1];
-    unsigned char mask = 0x80;
-    return (cmd & mask) == 0x80;
-}

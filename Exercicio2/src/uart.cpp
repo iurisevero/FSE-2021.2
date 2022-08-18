@@ -1,33 +1,36 @@
 #include "uart.hpp"
+#include "helpers.hpp"
 
-int abrir_uart(char * file_path){
-    int uart_filestream = -1;
-    uart_filestream = open(file_path, O_RDWR | O_NOCTTY | O_NDELAY);      //Open in non blocking read/write mode
-    if (uart_filestream == -1)
+#include <stdlib.h>
+
+int openUart(char * file_path){
+    int uartFilestream = -1;
+    uartFilestream = open(file_path, O_RDWR | O_NOCTTY | O_NDELAY);      //Open in non blocking read/write mode
+    if (uartFilestream == -1)
     {
         printf("Erro - Não foi possível iniciar a UART.\n");
-        return uart_filestream;
+        return uartFilestream;
     }
     else
     {
         printf("UART inicializada!\n");
     }    
     struct termios options;
-    tcgetattr(uart_filestream, &options);
+    tcgetattr(uartFilestream, &options);
     options.c_cflag = B9600 | CS8 | CLOCAL | CREAD;     //<Set baud rate
     options.c_iflag = IGNPAR;
     options.c_oflag = 0;
     options.c_lflag = 0;
-    tcflush(uart_filestream, TCIFLUSH);
-    tcsetattr(uart_filestream, TCSANOW, &options);
+    tcflush(uartFilestream, TCIFLUSH);
+    tcsetattr(uartFilestream, TCSANOW, &options);
 
-    return uart_filestream;
+    return uartFilestream;
 }
 
-int envia_dados(int uart_filestream, unsigned char * tx_buffer, size_t size_buffer){
-    if (uart_filestream != -1){
+int sendData(int uartFilestream, unsigned char * txBuffer, size_t sizeBuffer){
+    if (uartFilestream != -1){
         printf("Escrevendo caracteres na UART ...");
-        int count = write(uart_filestream, tx_buffer, size_buffer);
+        int count = write(uartFilestream, txBuffer, sizeBuffer);
         if (count < 0){
             printf("UART TX error\n");
             return count;
@@ -42,76 +45,32 @@ int envia_dados(int uart_filestream, unsigned char * tx_buffer, size_t size_buff
     return -1;
 }
 
-int recebe_dado(int uart_filestream, int * int_buffer){
-    if (uart_filestream != -1){
-        int rx_length = read(uart_filestream, (void*)int_buffer, 4);
-        if (rx_length < 0){
-            printf("Erro na leitura.\n"); //An error occured (will occur if there are no bytes)
-            return rx_length;
-        }
-        else if (rx_length == 0){
-            printf("Nenhum dado disponível.\n"); //No data waiting
-            return 0;
-        }
-        else{
-            printf("%i Bytes lidos : %d\n", rx_length, *int_buffer);
-            return rx_length;
-        }
-    }
-    printf("Filestream da UART inválido\n");
-    return -1;
-}
-
-int recebe_dado(int uart_filestream, float * float_buffer){
-    if (uart_filestream != -1){
-        int rx_length = read(uart_filestream, (void*)float_buffer, 4);
-        if (rx_length < 0){
-            printf("Erro na leitura.\n"); //An error occured (will occur if there are no bytes)
-            return rx_length;
-        }
-        else if (rx_length == 0){
-            printf("Nenhum dado disponível.\n"); //No data waiting
-            return 0;
-        }
-        else{
-            printf("%i Bytes lidos : %f\n", rx_length, *float_buffer);
-            return rx_length;
-        }
-    }
-    printf("Filestream da UART inválido\n");
-    return -1;
-}
-
-int recebe_dado(int uart_filestream, char * rx_buffer){
-    if (uart_filestream != -1){
-        char _size;
-        int rx_length = read(uart_filestream, (void*)&_size, 1);
-        if (rx_length < 0){
-            printf("Erro na leitura.\n"); //An error occured (will occur if there are no bytes)
-            return rx_length;
-        }
-        else if (rx_length == 0){
-            printf("Nenhum dado disponível.\n"); //No data waiting
-            return 0;
-        }
-        else{
-            printf("A String recebida possui %d bytes.\n", (int) _size);
-
-            rx_length = read(uart_filestream, (void*)rx_buffer, _size);
+int receiveData(int uartFilestream, char * rxBuffer, int _size){
+    if (uartFilestream != -1){
+        int actual_size = 0, expected_size = _size;
+        do{
+            char * aux_buffer = (char *) malloc(expected_size + 1);
+            int rx_length = read(uartFilestream, (void *) aux_buffer, expected_size);
             if (rx_length < 0){
                 printf("Erro na leitura.\n"); //An error occured (will occur if there are no bytes)
                 return rx_length;
             }
             else if (rx_length == 0){
                 printf("Nenhum dado disponível.\n"); //No data waiting
-                return 0;
+                return actual_size;
             }
-            else{
-                rx_buffer[rx_length] = '\0';
-                printf("%i Bytes lidos : %s\n", rx_length, rx_buffer);
-                return rx_length;
-            }
-        }
+
+            // Debug
+            aux_buffer[rx_length] = '\0';
+            printf("%i Bytes lidos\n", rx_length);
+            printArrHex(aux_buffer, rx_length);
+
+            memcpy(&rxBuffer[actual_size], aux_buffer, rx_length);
+            actual_size += rx_length;
+            expected_size -= rx_length;
+            
+            free(aux_buffer);
+        } while(expected_size);
     }
     printf("Filestream da UART inválido\n");
     return -1;

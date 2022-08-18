@@ -1,6 +1,14 @@
 #ifndef CONSTS_HPP
 #define CONSTS_HPP
 
-
+#define ENDERECO 0x01
+#define CMD_SOLICITACAO 0x23
+#define CMD_SOLICITA_INT 0xA1
+#define CMD_SOLICITA_FLOAT 0xA2
+#define CMD_SOLICITA_STRING 0xA3
+#define CMD_ENVIO 0x16
+#define CMD_ENVIA_INT 0xB1
+#define CMD_ENVIA_FLOAT 0xB2
+#define CMD_ENVIA_STRING 0xB3
 
 #endif
