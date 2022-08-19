@@ -3,8 +3,12 @@
 
 #include <stdlib.h>
 
-int openUart(char * file_path){
-    int uartFilestream = -1;
+using namespace Uart;
+
+int uartFilestream;
+
+int Uart::openUart(char * file_path){
+    uartFilestream = -1;
     uartFilestream = open(file_path, O_RDWR | O_NOCTTY | O_NDELAY);      //Open in non blocking read/write mode
     if (uartFilestream == -1)
     {
@@ -27,10 +31,10 @@ int openUart(char * file_path){
     return uartFilestream;
 }
 
-int sendData(int uartFilestream, unsigned char * txBuffer, size_t sizeBuffer){
+ssize_t Uart::sendData(unsigned char * txBuffer, ssize_t sizeBuffer){
     if (uartFilestream != -1){
         printf("Escrevendo caracteres na UART ...");
-        int count = write(uartFilestream, txBuffer, sizeBuffer);
+        ssize_t count = write(uartFilestream, txBuffer, sizeBuffer);
         if (count < 0){
             printf("UART TX error\n");
             return count;
@@ -45,12 +49,12 @@ int sendData(int uartFilestream, unsigned char * txBuffer, size_t sizeBuffer){
     return -1;
 }
 
-int receiveData(int uartFilestream, char * rxBuffer, int _size){
+ssize_t Uart::receiveData(unsigned char * rxBuffer, ssize_t _size){
     if (uartFilestream != -1){
-        int actual_size = 0, expected_size = _size;
+        ssize_t actual_size = 0, expected_size = _size;
         do{
-            char * aux_buffer = (char *) malloc(expected_size + 1);
-            int rx_length = read(uartFilestream, (void *) aux_buffer, expected_size);
+            unsigned char * aux_buffer = (unsigned char *) malloc(expected_size + 1);
+            ssize_t rx_length = read(uartFilestream, (void *) aux_buffer, expected_size);
             if (rx_length < 0){
                 printf("Erro na leitura.\n"); //An error occured (will occur if there are no bytes)
                 return rx_length;
@@ -62,7 +66,7 @@ int receiveData(int uartFilestream, char * rxBuffer, int _size){
 
             // Debug
             aux_buffer[rx_length] = '\0';
-            printf("%i Bytes lidos\n", rx_length);
+            printf("%li Bytes lidos\n", rx_length);
             printArrHex(aux_buffer, rx_length);
 
             memcpy(&rxBuffer[actual_size], aux_buffer, rx_length);

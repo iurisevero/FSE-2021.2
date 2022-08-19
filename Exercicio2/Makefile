@@ -2,8 +2,6 @@
 BINFOLDER := bin/
 # .hpp
 INCFOLDER := inc/
-# embedded Libraries
-EMBLIBS := embeddedLibraries/
 # .cpp
 SRCFOLDER := src/
 # .o
@@ -22,7 +20,7 @@ all: create_folders $(SRCFILES:src/%.cpp=obj/%.o)
 
 # Compila o programa classe por classe.
 $(OBJFOLDER)%.o: src/%.cpp
-	$(CC) $(CFLAGS) -c $< -o $@ -I./$(INCFOLDER) -I./$(EMBLIBS)
+	$(CC) $(CFLAGS) -c $< -o $@ -I./$(INCFOLDER)
 
 create_folders:
 	@mkdir -p $(OBJFOLDER) $(BINFOLDER)

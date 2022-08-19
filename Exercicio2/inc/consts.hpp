@@ -10,5 +10,8 @@
 #define CMD_ENVIA_INT 0xB1
 #define CMD_ENVIA_FLOAT 0xB2
 #define CMD_ENVIA_STRING 0xB3
+#define MATRICULA_SIZE 4
+
+extern const char MATRICULA[4];
 
 #endif

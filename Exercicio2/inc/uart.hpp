@@ -7,8 +7,10 @@
 #include <termios.h>        //Used for UART
 #include "helpers.hpp"
 
-int openUart(char * file_path);
-int sendData(int uartFilestream, unsigned char * txBuffer, size_t sizeBuffer);
-int receiveData(int uartFilestream, char * rxBuffer);
+namespace Uart {
+    int openUart(char * file_path);
+    ssize_t sendData(unsigned char * txBuffer, ssize_t sizeBuffer);
+    ssize_t receiveData(unsigned char * rxBuffer, ssize_t _size);
+}
 
 #endif

@@ -9,50 +9,38 @@
 #include "consts.hpp"
 
 int main(int argc, const char * argv[]) {
-    // char uartPath[] = "/dev/serial0";
-    // int uartFilestream = openUart(uartPath);
-    // close(uartFilestream);
-    unsigned char * message;
+    char uartPath[] = "/dev/serial0";
+    int uartFilestream = Uart::openUart(uartPath);
 
-    message = (unsigned char *) malloc(5);
-    size_t size = monta_solicitacao(message, CMD_SOLICITA_INT);
-    printf("size: %ld\n", size);
-    printArrHex(message, size);
-    bool a = checkCRC(message, size);
-    printf("Bool: %d\n", a);
-    a = checkErrorBit(message);
-    printf("Bool: %d\n", a);
-    free(message);
+    ssize_t rx_length;
 
-    message = (unsigned char *) malloc(9);
-    size = monta_envio(message, 7);
-    printf("size: %ld\n", size);
-    printArrHex(message, size);
-    a = checkCRC(message, size);
-    printf("Bool: %d\n", a);
-    a = checkErrorBit(message);
-    printf("Bool: %d\n", a);
-    free(message);
+    sendData(7);
+    sleep(1);
+    sendDataRequest(CMD_SOLICITA_INT);
+    sleep(1);
+    int receivedInt;
+    rx_length = receiveData(&receivedInt);
+    printf("%li Bytes lidos: %d\n", rx_length, receivedInt);
+    sleep(1);
 
-    message = (unsigned char *) malloc(9);
-    size = monta_envio(message, 7.0f);
-    printf("size: %ld\n", size);
-    printArrHex(message, size);
-    a = checkCRC(message, size);
-    printf("Bool: %d\n", a);
-    a = checkErrorBit(message);
-    printf("Bool: %d\n", a);
-    free(message);
+    sendData(7.77f);
+    sleep(1);
+    sendDataRequest(CMD_SOLICITA_INT);
+    sleep(1);
+    float receivedFloat;
+    rx_length = receiveData(&receivedFloat);
+    printf("%li Bytes lidos: %f\n", rx_length, receivedFloat);
+    sleep(1);
+    
+    sendData("Sete");
+    sleep(1);
+    sendDataRequest(CMD_SOLICITA_INT);
+    sleep(1);
+    char receivedString[256];
+    rx_length = receiveData(receivedString);
+    printf("%li Bytes lidos: %s\n", rx_length, receivedString);
 
-    message = (unsigned char *) malloc(12);
-    size = monta_envio(message, "Hello");
-    printf("size: %ld\n", size);
-    printArrHex(message, size);
-    a = checkCRC(message, size);
-    printf("Bool: %d\n", a);
-    a = checkErrorBit(message);
-    printf("Bool: %d\n", a);
-    free(message);
+    close(uartFilestream);
     return 0;
 }
 

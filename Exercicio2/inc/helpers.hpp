@@ -2,14 +2,19 @@
 #define HELPERS_HPP
 
 #include <string.h>
+#include <stdlib.h>
 
-void float2Bytes(unsigned char tempBytes[4],float * floatVariable);
-void int2Bytes(unsigned char tempBytes[4], int * intVariable);
-size_t getSize(unsigned char * begin, unsigned char * end);
+ssize_t getSize(unsigned char * begin, unsigned char * end);
 void addCRC(unsigned short crc, void * dest);
-bool checkCRC(unsigned char * message, size_t size);
+bool checkCRC(unsigned char * message, ssize_t size);
 bool checkErrorBit(unsigned char * message);
-void printArrHex(char * arr, size_t size);
-void printArrHex(unsigned char * arr, size_t size);
+bool checkReceivedData(
+    unsigned char * message,
+    unsigned char expectedAddr,
+    unsigned char expectedCode,
+    unsigned char expectedSubCode
+);
+void addMatricula(void * dest);
+void printArrHex(unsigned char * arr, ssize_t size);
 
 #endif

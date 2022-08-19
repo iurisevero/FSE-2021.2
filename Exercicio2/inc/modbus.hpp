@@ -3,9 +3,22 @@
 
 #include <stdlib.h>
 
-size_t monta_solicitacao(unsigned char * message, unsigned char cmd);
-size_t monta_envio(unsigned char * message, int value);
-size_t monta_envio(unsigned char * message, float value);
-size_t monta_envio(unsigned char * message, char * value);
+ssize_t assembleProtocol(
+    unsigned char * message,
+    unsigned char cmd,
+    bool isRequest=false
+);
+ssize_t sendDataRequest(unsigned char cmd);
+ssize_t sendData(int value);
+ssize_t sendData(float value);
+ssize_t sendData(char * value);
+ssize_t receiveData(int * value);
+ssize_t receiveData(float * value);
+ssize_t receiveData(char * value);
+ssize_t receiveConstantSizeData(
+    unsigned char * message,
+    ssize_t expectedSize,
+    unsigned char subCmd
+);
 
 #endif
